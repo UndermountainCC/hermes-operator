@@ -14,6 +14,10 @@ create is constrained by a cluster `ValidatingAdmissionPolicy` (VAP). Together, 
   `quantity()` CEL extension).
 - A hermes-agent image that bundles the `kubernetes` client extra (the
   agent's `kubernetes_subprocess.ExecutionBackend` driver imports it lazily).
+  The agent-side backend is proposed upstream in
+  [NousResearch/hermes-agent#37591](https://github.com/NousResearch/hermes-agent/pull/37591);
+  until it ships in a tagged release, use an image built from that branch
+  (e.g. `ghcr.io/undermountaincc/hermes-agent`).
 - The session-pod VAP installed cluster-wide (see below). The CR's
   `spec.execBackend: kubernetes` reconciles the per-agent Role / RoleBinding /
   session SA regardless, but **without the VAP the bare `pods/create` Role
@@ -108,4 +112,10 @@ reconcile.
 The agent-side implementation (the `kubernetes_subprocess` backend, the
 `TERMINAL_ENV=kubernetes` plumbing, the lazy-loadable Python dep) lives in
 the upstream [hermes-agent](https://github.com/NousResearch/hermes-agent)
-repo.
+repo, contributed in
+[PR #37591](https://github.com/NousResearch/hermes-agent/pull/37591). This
+operator provides the cluster-side half — the per-agent exec RBAC, the
+powerless session ServiceAccount, and the session-pod `ValidatingAdmissionPolicy`
+that make granting `pods/create` safe. Track that PR for the upstream status;
+once it lands in a tagged release, the stock `nousresearch/hermes-agent` image
+works without a custom build.
