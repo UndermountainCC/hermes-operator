@@ -3,7 +3,17 @@
 
 name: Docs
 
+# Validates the MkDocs site builds cleanly (--strict catches broken links and nav).
+# Publishing is handled out-of-repo: the undermountain.cc site clones this repo and
+# serves the built docs at https://undermountain.cc/labs/hermes-operator/. This repo
+# no longer deploys to GitHub Pages.
+
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs.yml'
   push:
     branches: [main]
     paths:
@@ -12,20 +22,15 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: docs
-  cancel-in-progress: false
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-deploy:
+  build:
     runs-on: ucc-org-runners
     timeout-minutes: 10
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -35,18 +40,9 @@ jobs:
           cache: pip
           cache-dependency-path: docs/requirements.txt
 
-      - name: Install Mkdocs Material
+      - name: Install MkDocs Material
         run: pip install -r docs/requirements.txt
 
-      - name: Build site
+      - name: Build site (strict)
         working-directory: docs
         run: mkdocs build --strict --site-dir ../site
-
-      - uses: actions/configure-pages@v5
-
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
-
-      - id: deploy
-        uses: actions/deploy-pages@v4

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 site_name: hermes-operator
-site_url: https://undermountaincc.github.io/hermes-operator/
+site_url: https://undermountain.cc/labs/hermes-operator/
 site_description: Kubernetes operator for the Hermes AI agent
 repo_url: https://github.com/UndermountainCC/hermes-operator
 repo_name: UndermountainCC/hermes-operator
