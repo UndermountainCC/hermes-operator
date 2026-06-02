@@ -5,19 +5,28 @@ name: E2E
 on:
   pull_request:
     branches: [main]
+    paths-ignore: ['**.md', 'docs/**']
   push:
     branches: [main]
+    paths-ignore: ['**.md', 'docs/**']
 
 jobs:
   e2e:
     name: kind + make test-e2e
-    runs-on: ucc-org-runners
+    runs-on: ubuntu-latest
     # 30m go test timeout (set in Makefile) + image builds + cert-manager
     # install can push wall-clock past the previous 30m job cap.
     timeout-minutes: 45
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+            /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          sudo docker image prune --all --force >/dev/null 2>&1 || true
+          df -h /
 
       - name: Set up Go
         uses: actions/setup-go@v5

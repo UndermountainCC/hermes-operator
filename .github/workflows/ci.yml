@@ -6,8 +6,10 @@ name: CI
 on:
   push:
     branches: [main]
+    paths-ignore: ['**.md', 'docs/**']
   pull_request:
     branches: [main]
+    paths-ignore: ['**.md', 'docs/**']
 
 permissions:
   contents: read
@@ -19,7 +21,7 @@ concurrency:
 
 jobs:
   lint:
-    runs-on: ucc-org-runners
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -36,7 +38,7 @@ jobs:
           args: --timeout=10m
 
   manifests-no-drift:
-    runs-on: ucc-org-runners
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -56,7 +58,7 @@ jobs:
           fi
 
   test:
-    runs-on: ucc-org-runners
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -76,7 +78,7 @@ jobs:
         run: make test
 
   dco:
-    runs-on: ucc-org-runners
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     if: github.event_name == 'pull_request'
     steps:

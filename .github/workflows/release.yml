@@ -28,7 +28,7 @@ env:
 jobs:
   # ── amd64 build ─────────────────────────────────────────────────────────────
   build-amd64:
-    runs-on: ucc-org-runners
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
       contents: read
@@ -63,7 +63,7 @@ jobs:
 
   # ── arm64 build ─────────────────────────────────────────────────────────────
   build-arm64:
-    runs-on: ucc-org-runners
+    runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
       contents: read
@@ -101,7 +101,7 @@ jobs:
 
   # ── manifest assembly + signing + GitHub Release ────────────────────────────
   release:
-    runs-on: ucc-org-runners
+    runs-on: ubuntu-latest
     needs: [build-amd64, build-arm64]
     timeout-minutes: 15
     steps:
@@ -189,7 +189,7 @@ jobs:
 
   # ── Helm chart publish ───────────────────────────────────────────────────────
   publish-chart:
-    runs-on: ucc-org-runners
+    runs-on: ubuntu-latest
     needs: release
     timeout-minutes: 10
     permissions:
