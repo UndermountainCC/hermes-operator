@@ -1,8 +1,14 @@
 # hermes-operator
 
-![E2E](https://github.com/UndermountainCC/hermes-operator/actions/workflows/test-e2e.yml/badge.svg)
+[![CI](https://github.com/UndermountainCC/hermes-operator/actions/workflows/ci.yml/badge.svg)](https://github.com/UndermountainCC/hermes-operator/actions/workflows/ci.yml)
+[![E2E](https://github.com/UndermountainCC/hermes-operator/actions/workflows/test-e2e.yml/badge.svg)](https://github.com/UndermountainCC/hermes-operator/actions/workflows/test-e2e.yml)
+[![release](https://img.shields.io/github/v/release/UndermountainCC/hermes-operator?include_prereleases&color=orange)](https://github.com/UndermountainCC/hermes-operator/releases)
+[![license](https://img.shields.io/badge/license-Apache--2.0-blue)](./LICENSE)
+[![docs](https://img.shields.io/badge/docs-undermountain.cc-blue)](https://undermountain.cc/labs/hermes-operator/)
 
 > **Status:** v1alpha1 implementation complete; ready for internal alpha use. Public API may change.
+
+📚 **Full documentation:** [undermountain.cc/labs/hermes-operator](https://undermountain.cc/labs/hermes-operator/)
 
 A Kubernetes operator for deploying and managing [Hermes](https://github.com/NousResearch/hermes-agent) AI agent instances. Define an agent declaratively via a `HermesAgent` custom resource; the operator reconciles the Pod, PVC, ServiceAccount, RBAC bindings, env composition, and per-gateway readiness status.
 
