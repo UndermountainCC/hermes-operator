@@ -1,0 +1,11 @@
+# Copyright 2026 Undermountain Coding Company
+# SPDX-License-Identifier: Apache-2.0
+
+blank_issues_enabled: false
+contact_links:
+  - name: GitHub Discussions
+    url: https://github.com/UndermountainCC/hermes-operator/discussions
+    about: For questions, ideas, or general discussion.
+  - name: Security
+    url: https://github.com/UndermountainCC/hermes-operator/security/policy
+    about: Report a security vulnerability privately, not via a public issue.

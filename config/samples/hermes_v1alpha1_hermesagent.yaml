@@ -1,0 +1,62 @@
+# Copyright 2026 Undermountain Coding Company
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: hermes.k8s.undermountain.cc/v1alpha1
+kind: HermesAgent
+metadata:
+  name: my-agent
+  namespace: hermes
+spec:
+  # Real image refs use sha256 digests. This is a placeholder for the sample
+  # — replace with an actual image from ghcr.io/undermountaincc/hermes-agent
+  # or the upstream docker.io/nousresearch/hermes-agent.
+  image: ghcr.io/undermountaincc/hermes-agent:v2026.4.30
+  imagePullPolicy: IfNotPresent
+
+  storage:
+    persistentVolumeClaim:
+      accessModes: [ReadWriteOnce]
+      resources:
+        requests: { storage: 100Gi }
+      storageClassName: local-path
+    retainPolicy: Retain
+
+  resources:
+    requests: { cpu: 500m, memory: 1Gi }
+    limits:   { cpu: "2",  memory: 4Gi }
+
+  # nodeSelector and tolerations are optional — adapt to your cluster's node
+  # labels. Remove these fields if you don't need to pin to specific nodes.
+  # nodeSelector:
+  #   disktype: ssd  # example; replace with your node label key/value
+  # tolerations:
+  #   - key: disktype
+  #     operator: Equal
+  #     value: ssd
+  #     effect: NoSchedule
+
+  env:
+    - { name: HERMES_MAX_ITERATIONS, value: "90" }
+    - { name: TERMINAL_ENV,          value: local }
+
+  llmDefaultProvider: deepseek
+  llmProviders:
+    - name: deepseek
+      models: [deepseek-chat]
+      env:
+        - name: DEEPSEEK_API_KEY
+          valueFrom:
+            secretKeyRef: { name: hermes-my-agent-secrets, key: DEEPSEEK_API_KEY }
+        - name: DEEPSEEK_BASE_URL
+          value: https://api.deepseek.com
+
+  gateways:
+    - type: discord
+      env:
+        - name: DISCORD_BOT_TOKEN
+          valueFrom:
+            secretKeyRef: { name: hermes-my-agent-secrets, key: DISCORD_BOT_TOKEN }
+        - name: DISCORD_ALLOWED_USERS
+          # Replace with your Discord user's snowflake ID (18-digit integer).
+          # Find it in Discord → Settings → Advanced → Developer Mode → right-click your name.
+          value: "123456789012345678"

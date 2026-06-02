@@ -1,0 +1,76 @@
+# Copyright 2026 Undermountain Coding Company
+# SPDX-License-Identifier: Apache-2.0
+
+name: Bug report
+description: File a bug report
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report.
+        Please complete the form below so we can reproduce + diagnose quickly.
+
+  - type: input
+    id: operator-version
+    attributes:
+      label: hermes-operator version
+      description: Result of `kubectl -n hermes-operator-system get deploy hermes-operator-controller-manager -o jsonpath='{.spec.template.spec.containers[0].image}'`
+      placeholder: ghcr.io/undermountaincc/hermes-operator:v0.1.0
+    validations:
+      required: true
+
+  - type: input
+    id: k8s-version
+    attributes:
+      label: Kubernetes version
+      description: Output of `kubectl version --short`
+      placeholder: "1.30.4"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: cluster
+    attributes:
+      label: Cluster type
+      options:
+        - kind
+        - k3s / k3d
+        - minikube
+        - EKS
+        - GKE
+        - AKS
+        - OpenShift
+        - Bare metal / kubeadm
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: cr
+    attributes:
+      label: Minimal HermesAgent CR that reproduces
+      description: Strip out secrets (replace with placeholders). YAML, please.
+      render: yaml
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happened
+      description: Include controller logs (`kubectl -n hermes-operator-system logs deploy/hermes-operator-controller-manager`)
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else?

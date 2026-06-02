@@ -1,0 +1,53 @@
+# Copyright 2026 Undermountain Coding Company
+# SPDX-License-Identifier: Apache-2.0
+
+version: "2"
+
+run:
+  timeout: 5m
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+
+linters:
+  settings:
+    revive:
+      rules:
+        # Disable package-comments: operator-sdk scaffold uses license headers
+        # instead of Go doc comments on package declarations.
+        - name: package-comments
+          disabled: true
+
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - misspell
+    - revive
+    - staticcheck
+    - unconvert
+    - unused
+
+  exclusions:
+    rules:
+      # Generated files
+      - path: zz_generated.*\.go
+        linters:
+          - revive
+          - staticcheck
+      # Test files: relax error-checking strictness and dot imports
+      - path: _test\.go
+        linters:
+          - errcheck
+          - gosec
+          - revive
+      # E2E tests: allow dot imports for ginkgo/gomega
+      - path: test/e2e/.*\.go
+        linters:
+          - revive
+      # Controller file: suppress unused parameter in generated Reconcile stub
+      - path: internal/controller/.*_controller\.go
+        linters:
+          - revive

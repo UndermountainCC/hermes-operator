@@ -1,0 +1,24 @@
+# Copyright 2026 Undermountain Coding Company
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: v2
+name: hermes-operator
+description: Kubernetes operator for the Hermes AI agent
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+home: https://github.com/UndermountainCC/hermes-operator
+sources:
+  - https://github.com/UndermountainCC/hermes-operator
+keywords:
+  - hermes
+  - ai
+  - agent
+  - operator
+maintainers:
+  - name: UndermountainCC
+    url: https://github.com/UndermountainCC
+annotations:
+  artifacthub.io/license: Apache-2.0
+  artifacthub.io/category: ai-machine-learning
+  artifacthub.io/operator: "true"

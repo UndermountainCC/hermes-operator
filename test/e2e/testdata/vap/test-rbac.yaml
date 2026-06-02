@@ -1,0 +1,52 @@
+# Copyright 2026 Undermountain Coding Company
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hermes-vap-e2e
+---
+# Test SA the e2e impersonates to attempt pod creates. The name MUST match
+# the VAP's identity matchCondition regex `^system:serviceaccount:[^:]+:hermes-[^:]+$`
+# (i.e., the local-part begins with `hermes-`), otherwise the VAP doesn't
+# fire and the spec would be testing the wrong codepath.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: hermes-vap-test
+  namespace: hermes-vap-e2e
+---
+# Operator-provisioned-style session SA the compliant pod references. Mirrors
+# the shape the operator's reconcileExecBackendRBAC produces: name ending in
+# -session and automountServiceAccountToken=false. The compliant pod needs
+# this SA to exist or the API server rejects spec.serviceAccountName.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: hermes-vap-session
+  namespace: hermes-vap-e2e
+automountServiceAccountToken: false
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: hermes-vap-test-pods
+  namespace: hermes-vap-e2e
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["create", "get", "list", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: hermes-vap-test-pods
+  namespace: hermes-vap-e2e
+subjects:
+  - kind: ServiceAccount
+    name: hermes-vap-test
+    namespace: hermes-vap-e2e
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: hermes-vap-test-pods

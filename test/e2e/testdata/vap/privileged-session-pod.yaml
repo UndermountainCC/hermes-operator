@@ -1,0 +1,32 @@
+# Copyright 2026 Undermountain Coding Company
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hermes-ws-privileged
+  namespace: hermes-vap-e2e
+  labels:
+    app.kubernetes.io/managed-by: hermes-agent
+spec:
+  serviceAccountName: hermes-vap-session
+  automountServiceAccountToken: false
+  hostNetwork: false
+  # Privilege-escalation attempt: shares the host's PID namespace.
+  # Compliant pod is identical except this is false.
+  hostPID: true
+  hostIPC: false
+  restartPolicy: Never
+  containers:
+    - name: workspace
+      image: docker.io/library/ubuntu:22.04
+      command: ["sleep", "infinity"]
+      resources:
+        limits:
+          cpu: "500m"
+          memory: "512Mi"
+      securityContext:
+        runAsNonRoot: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]

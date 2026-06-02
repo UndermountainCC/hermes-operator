@@ -1,0 +1,19 @@
+{{- $relname := .Release.Name -}}
+{{- $relns := .Release.Namespace -}}
+hermes-operator installed successfully.
+
+Verify the operator is running:
+  kubectl -n {{ $relns }} rollout status deployment {{ $relname }}-controller-manager --timeout=120s
+
+Create your first HermesAgent — see https://undermountaincc.github.io/hermes-operator/ for a quickstart.
+
+{{- if not .Values.operator.allowedClusterRoles }}
+
+  WARNING: operator.allowedClusterRoles is empty.
+  HermesAgent CRs declaring spec.rbac.clusterRoleBindings[] will be rejected.
+  Set it via a values file (recommended for multi-value):
+      operator:
+        allowedClusterRoles: "cluster-admin,admin"
+  Or via --set with comma-escape:
+      --set "operator.allowedClusterRoles=cluster-admin\,admin"
+{{- end }}

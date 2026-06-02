@@ -1,0 +1,8 @@
+# Default reviewers for everything.
+*  @UndermountainCC/maintainers
+
+# Helm chart needs cluster admin / SRE review.
+/charts/  @UndermountainCC/maintainers @UndermountainCC/sre
+
+# Docs site / Mkdocs config.
+/docs/    @UndermountainCC/maintainers

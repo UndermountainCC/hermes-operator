@@ -1,0 +1,32 @@
+# Copyright 2026 Undermountain Coding Company
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hermes-ws-unlabeled
+  namespace: hermes-vap-e2e
+  # Regression test for the original agent-sandbox label-omission bypass.
+  # The agent-sandbox VAP put the managed-by label check in matchConditions —
+  # omitting the label made the VAP skip. Our VAP moves the label check to
+  # validations (REQUIRED). This pod omits the label and should be DENIED.
+spec:
+  serviceAccountName: hermes-vap-session
+  automountServiceAccountToken: false
+  hostNetwork: false
+  hostPID: false
+  hostIPC: false
+  restartPolicy: Never
+  containers:
+    - name: workspace
+      image: docker.io/library/ubuntu:22.04
+      command: ["sleep", "infinity"]
+      resources:
+        limits:
+          cpu: "500m"
+          memory: "512Mi"
+      securityContext:
+        runAsNonRoot: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]

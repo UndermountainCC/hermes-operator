@@ -1,0 +1,33 @@
+# Copyright 2026 Undermountain Coding Company
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hermes-ws-wrong-sa
+  namespace: hermes-vap-e2e
+  labels:
+    app.kubernetes.io/managed-by: hermes-agent
+spec:
+  # Wrong SA: doesn't end in -session. VAP requires the operator-provisioned
+  # session SA (suffix -session, automount=false) so the session pod carries
+  # no cluster credentials.
+  serviceAccountName: hermes-vap-test
+  automountServiceAccountToken: false
+  hostNetwork: false
+  hostPID: false
+  hostIPC: false
+  restartPolicy: Never
+  containers:
+    - name: workspace
+      image: docker.io/library/ubuntu:22.04
+      command: ["sleep", "infinity"]
+      resources:
+        limits:
+          cpu: "500m"
+          memory: "512Mi"
+      securityContext:
+        runAsNonRoot: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]

@@ -1,0 +1,85 @@
+# Copyright 2026 Undermountain Coding Company
+# SPDX-License-Identifier: Apache-2.0
+
+# Default values for hermes-operator.
+
+image:
+  repository: ghcr.io/undermountaincc/hermes-operator
+  # tag defaults to .Chart.AppVersion; override here for nightly builds
+  tag: ""
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+# Number of operator replicas. Leader election ensures only one is active.
+replicas: 1
+
+# Operator install-time policy.
+operator:
+  # Comma-separated allowlist of ClusterRole names permitted in
+  # HermesAgent.spec.rbac.clusterRoleBindings[]. Default empty —
+  # no cluster-scoped bindings allowed unless cluster admin opts in.
+  allowedClusterRoles: ""
+
+  # Optional log verbosity override (0=info, higher=more detail).
+  logLevel: ""
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Admission-time validation of HermesAgent CRs lives in the CRD itself via
+# x-kubernetes-validations CEL rules (see api/v1alpha1/hermesagent_types.go) —
+# the validating admission webhook + cert-manager dependency were removed in
+# Phase 11. Nothing to configure here.
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+# CRD management.
+crds:
+  # If false, the chart skips CRD installation — useful when CRDs are managed
+  # separately (e.g., GitOps that requires CRDs upserted out-of-band).
+  install: true
+
+# Prometheus Operator integration (opt-in). Enabling the ServiceMonitor
+# requires the monitoring.coreos.com/v1 CRDs (Prometheus Operator) to be
+# pre-installed in the cluster — Helm fails fast on apply if they're missing.
+# With it on, Prometheus auto-scrapes the operator's /metrics endpoint
+# (HTTPS via the service account token) and the operator's custom
+# hermes_agent_* gauges become queryable.
+prometheus:
+  serviceMonitor:
+    enabled: false
+
+# OpenTelemetry distributed tracing (opt-in). When tracing.otlp.endpoint is
+# set, the operator emits OTLP gRPC trace spans to the configured collector
+# for every reconcile loop. Standard span shape: root "hermesagent.Reconcile"
+# with child spans per reconcile helper (Reconcile.PVC, Reconcile.RBAC, etc.).
+#
+# Default empty string disables tracing entirely (zero overhead, no
+# connection attempt). When set, the value lands as
+# OTEL_EXPORTER_OTLP_ENDPOINT on the operator Pod and internal/tracing.Init
+# wires the global TracerProvider at startup.
+#
+# Common collector endpoints:
+#   - OTel Collector: "otel-collector.observability.svc.cluster.local:4317"
+#   - Grafana Tempo:  "tempo.observability.svc:4317"
+#   - Jaeger (via OTel Collector): same as OTel Collector
+#   - Honeycomb (direct): "api.honeycomb.io:443" with auth via OTEL_EXPORTER_OTLP_HEADERS
+tracing:
+  otlp:
+    # Endpoint for OTLP gRPC trace export. Leave empty to disable tracing.
+    endpoint: ""
+    # Service name reported in resource.service.name on every span. Defaults
+    # to "hermes-operator" in the operator binary when unset.
+    serviceName: ""

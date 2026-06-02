@@ -1,0 +1,38 @@
+# Copyright 2026 Undermountain Coding Company
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hermes-ws-wrong-pvc
+  namespace: hermes-vap-e2e
+  labels:
+    app.kubernetes.io/managed-by: hermes-agent
+spec:
+  serviceAccountName: hermes-vap-session
+  automountServiceAccountToken: false
+  hostNetwork: false
+  hostPID: false
+  hostIPC: false
+  restartPolicy: Never
+  # PVC not named hermes-ws-*. VAP denies before the PVC is mounted, so it
+  # doesn't need to exist — the validation rejects on shape alone. Without
+  # this rule a compromised agent could mount OTHER agents' PVCs in the
+  # same namespace and exfiltrate their state.
+  volumes:
+    - name: stolen
+      persistentVolumeClaim:
+        claimName: some-other-pvc
+  containers:
+    - name: workspace
+      image: docker.io/library/ubuntu:22.04
+      command: ["sleep", "infinity"]
+      resources:
+        limits:
+          cpu: "500m"
+          memory: "512Mi"
+      securityContext:
+        runAsNonRoot: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]

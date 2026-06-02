@@ -1,0 +1,7 @@
+# Copyright 2026 Undermountain Coding Company
+# SPDX-License-Identifier: Apache-2.0
+
+## Append samples of your project ##
+resources:
+- hermes_v1alpha1_hermesagent.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples

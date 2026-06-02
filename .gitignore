@@ -1,0 +1,43 @@
+# Go binaries
+bin/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Go test / build artifacts
+*.test
+*.out
+coverage.out
+coverage.html
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+
+# Operator-sdk / kubebuilder
+testbin/
+cover.out
+
+# Local dev clusters
+kubeconfig
+kind-config*.yaml
+
+# Helm
+charts/*/charts/
+charts/*/Chart.lock
+*.tgz
+
+# Mkdocs
+docs/site/
+
+# Local env
+.env
+.env.local
+/docs/plans/
+/docs/research/

@@ -1,0 +1,50 @@
+# Copyright 2026 Undermountain Coding Company
+# SPDX-License-Identifier: Apache-2.0
+
+# Adds namespace to all resources.
+namespace: hermes-operator-system
+
+# Value of this field is prepended to the
+# names of all resources, e.g. a deployment named
+# "wordpress" becomes "alices-wordpress".
+# Note that it should also match with the prefix (text before '-') of the namespace
+# field above.
+namePrefix: hermes-operator-
+
+# Labels to add to all resources and selectors.
+#labels:
+#- includeSelectors: true
+#  pairs:
+#    someName: someValue
+
+resources:
+- ../crd
+- ../rbac
+- ../manager
+# [PROMETHEUS] To enable prometheus monitor, uncomment all sections with 'PROMETHEUS'.
+#- ../prometheus
+# [METRICS] Expose the controller manager metrics service.
+- metrics_service.yaml
+# [NETWORK POLICY] Protect the /metrics endpoint with NetworkPolicy.
+# Only Pod(s) running a namespace labeled with 'metrics: enabled' will be able to gather the metrics.
+#- ../network-policy
+# Opt-in: cluster-level pod-security guardrail for the kubernetes exec backend.
+# Requires K8s >= 1.30 (ValidatingAdmissionPolicy GA). Adapted from
+# kubernetes-sigs/agent-sandbox (see docs/research/agent-sandbox-evaluation.md),
+# hardened against the label-omission bypass (identity-based matchCondition +
+# label-as-validation). Uncomment to install the policy + binding cluster-wide.
+#- ../admission-policy
+
+# Uncomment the patches line if you enable Metrics
+patches:
+# [METRICS] The following patch will enable the metrics endpoint using HTTPS and the port :8443.
+# More info: https://book.kubebuilder.io/reference/metrics
+- path: manager_metrics_patch.yaml
+  target:
+    kind: Deployment
+
+# Phase 11 removed the validating admission webhook + cert-manager-issued
+# webhook serving cert. Admission-time validation now lives in the CRD via
+# x-kubernetes-validations CEL rules (see api/v1alpha1/hermesagent_types.go).
+# +kubebuilder:scaffold:crdkustomizecainjectionns
+# +kubebuilder:scaffold:crdkustomizecainjectionname

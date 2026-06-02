@@ -1,0 +1,102 @@
+# Copyright 2026 Undermountain Coding Company
+# SPDX-License-Identifier: Apache-2.0
+
+site_name: hermes-operator
+site_url: https://undermountaincc.github.io/hermes-operator/
+site_description: Kubernetes operator for the Hermes AI agent
+repo_url: https://github.com/UndermountainCC/hermes-operator
+repo_name: UndermountainCC/hermes-operator
+edit_uri: edit/main/docs/docs/
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.tracking
+    - toc.follow
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.code.annotate
+    - content.action.edit
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+
+  - Tutorials:
+      - Quickstart (10 minutes): tutorials/quickstart.md
+      - Your first HermesAgent (Discord): tutorials/your-first-hermesagent.md
+
+  - How-to guides:
+      - Install the operator: how-to/install.md
+      - Set up a Discord bot: how-to/setup-discord-bot.md
+      - Verify an agent is healthy: how-to/verify-health.md
+      - Troubleshoot an agent that isn't Ready: how-to/troubleshoot-not-ready.md
+      - Change the LLM provider for an agent: how-to/change-llm-provider.md
+      - Enable the dashboard sidecar: how-to/enable-dashboard.md
+      - Expose the dashboard externally with auth: how-to/expose-dashboard.md
+      - Restrict agent network traffic with NetworkPolicy: how-to/network-policy.md
+      - Run sessions in their own pods (kubernetes exec backend): how-to/kubernetes-exec-backend.md
+      - Enable Prometheus metrics + Grafana dashboards: how-to/metrics-dashboards.md
+      - Send OpenTelemetry traces to a collector: how-to/opentelemetry.md
+      - Suspend an agent: how-to/suspend-an-agent.md
+      - Upgrade and uninstall: how-to/upgrade-uninstall.md
+
+  - Concepts:
+      - How a HermesAgent runs in your cluster: concepts/architecture.md
+      - PVC sovereignty (why your agent owns its state): concepts/storage.md
+      - The RBAC model (what the operator grants): concepts/rbac-model.md
+      - Lifecycle, phases, and conditions: concepts/lifecycle.md
+      - Known Hermes upstream behaviours: concepts/upstream-behaviours.md
+
+  - Reference:
+      - HermesAgent API (CRD fields): reference/api-reference.md
+      - Helm values: reference/helm-values.md
+      - Operator CLI flags: reference/cli-flags.md
+      - Troubleshooting catalogue: reference/troubleshooting.md
+      - Metrics and labels: reference/metrics.md
+
+  - Project:
+      - What's new: project/whats-new.md
+      - Contributing: project/contributing.md
+      - License: project/license.md

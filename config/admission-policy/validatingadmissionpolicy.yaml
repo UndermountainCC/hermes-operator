@@ -1,0 +1,136 @@
+# Copyright 2026 Undermountain Coding Company
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: hermes-session-pod-security
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE"]
+        resources: ["pods"]
+  matchConditions:
+    # Identity-based scoping. Matches pods created by ANY ServiceAccount whose
+    # name follows the operator's agent-SA pattern (hermes-<agent-name> in any
+    # namespace). The username is server-attached by the API server — the
+    # agent cannot forge or omit it. This closes the label-omission bypass.
+    #
+    # NOTE: the label check is intentionally NOT here — see validations below.
+    # Putting the label in matchConditions would let an attacker skip the VAP
+    # by omitting the label; putting it in validations REQUIRES the label.
+    - name: created-by-hermes-agent-sa
+      expression: >-
+        request.userInfo.username.matches('^system:serviceaccount:[^:]+:hermes-[^:]+$')
+  validations:
+    # 0. Managed-by label is REQUIRED (not a match condition — required).
+    #    Moved from agent-sandbox's matchConditions because an agent-controlled
+    #    property must never gate WHETHER the VAP runs.
+    - expression: >-
+        has(object.metadata.labels) &&
+        object.metadata.labels['app.kubernetes.io/managed-by'] == 'hermes-agent'
+      message: "session pods must carry app.kubernetes.io/managed-by=hermes-agent label"
+
+    # 1. Session SA is REQUIRED — the operator-provisioned no-perms SA whose
+    #    name follows the suffix convention `<agent>-session`. This SA has
+    #    automountServiceAccountToken=false and no bindings, so the session
+    #    pod carries no cluster credentials.
+    - expression: "object.spec.serviceAccountName != 'default'"
+      message: "session pods must not run as the default ServiceAccount"
+    - expression: >-
+        has(object.spec.serviceAccountName) &&
+        object.spec.serviceAccountName.endsWith('-session')
+      message: "session pods must use the operator-provisioned session SA (name ending in -session)"
+
+    # 2. Token automounting denied. Belt-and-suspenders with the session-SA
+    #    enforcement: even if a non-session SA somehow gets through, no token.
+    - expression: >-
+        has(object.spec.automountServiceAccountToken) &&
+        object.spec.automountServiceAccountToken == false
+      message: "automountServiceAccountToken must be set to false on session pods"
+
+    # 3. Host-namespace escapes denied (verbatim from agent-sandbox).
+    - expression: "!has(object.spec.hostNetwork) || object.spec.hostNetwork == false"
+      message: "hostNetwork is not allowed for session pods"
+    - expression: "!has(object.spec.hostPID) || object.spec.hostPID == false"
+      message: "hostPID is not allowed for session pods"
+    - expression: "!has(object.spec.hostIPC) || object.spec.hostIPC == false"
+      message: "hostIPC is not allowed for session pods"
+
+    # 4. Container security shape (verbatim from agent-sandbox).
+    - expression: >-
+        object.spec.containers.all(c,
+          has(c.securityContext) &&
+          has(c.securityContext.allowPrivilegeEscalation) &&
+          c.securityContext.allowPrivilegeEscalation == false)
+      message: "every container must set allowPrivilegeEscalation=false"
+    - expression: >-
+        object.spec.containers.all(c,
+          has(c.securityContext) &&
+          has(c.securityContext.capabilities) &&
+          has(c.securityContext.capabilities.drop) &&
+          c.securityContext.capabilities.drop.exists(d, d == 'ALL'))
+      message: "every container must drop ALL capabilities"
+
+    # 5. Volume restrictions — hostPath denied (verbatim from agent-sandbox),
+    #    AND PVC name allowlist (new). The agent's exec Role does not pin
+    #    PVC names (session PVC names are runtime-chosen), so the VAP must
+    #    constrain which PVCs the session pod can mount. Without this rule,
+    #    a compromised agent could mount OTHER agents' PVCs in the same
+    #    namespace and exfiltrate their state.
+    - expression: >-
+        !has(object.spec.volumes) ||
+        object.spec.volumes.all(v, !has(v.hostPath))
+      message: "hostPath volumes are not allowed for session pods"
+    - expression: >-
+        !has(object.spec.volumes) ||
+        object.spec.volumes.all(v,
+          !has(v.persistentVolumeClaim) ||
+          v.persistentVolumeClaim.claimName.startsWith('hermes-ws-'))
+      message: "session pods may only reference PVCs named hermes-ws-* (workspace PVCs)"
+
+    # 6. Image allowlist. The agent supplies the image name; without an
+    #    allowlist, a compromised agent could run docker.io/cryptominer/xmrig:latest.
+    #    Allowlist is conservative — extend it as the team needs (e.g., add a
+    #    paramRef ConfigMap if it grows beyond a small set).
+    - expression: >-
+        object.spec.containers.all(c,
+          c.image.startsWith('docker.io/library/ubuntu:') ||
+          c.image.startsWith('docker.io/library/alpine:') ||
+          c.image.startsWith('docker.io/library/debian:') ||
+          c.image.startsWith('ghcr.io/undermountaincc/'))
+      message: >-
+        container image must be in the session-pod allowlist
+        (docker.io/library/{ubuntu,alpine,debian}:* or ghcr.io/undermountaincc/*)
+
+    # 7. Resource limits required + capped. Unbounded resources let a
+    #    compromised agent DoS the node.
+    - expression: >-
+        object.spec.containers.all(c,
+          has(c.resources) &&
+          has(c.resources.limits) &&
+          has(c.resources.limits.memory) &&
+          has(c.resources.limits.cpu))
+      message: "every container must declare cpu + memory limits"
+    - expression: >-
+        object.spec.containers.all(c,
+          quantity(c.resources.limits.memory).isLessThan(quantity('4Gi')))
+      message: "memory limit must be less than 4Gi"
+    - expression: >-
+        object.spec.containers.all(c,
+          quantity(c.resources.limits.cpu).isLessThan(quantity('4')))
+      message: "cpu limit must be less than 4 cores"
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: hermes-session-pod-security
+spec:
+  policyName: hermes-session-pod-security
+  validationActions: ["Deny"]
+  # Cluster-wide; the identity-based matchCondition on the policy scopes
+  # enforcement to pod creates from hermes-* ServiceAccounts.
+  matchResources: {}
