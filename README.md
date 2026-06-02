@@ -62,9 +62,9 @@ See [docs/install.md](./docs/docs/install.md) for cert-manager prerequisite + pe
 
 ## Documentation
 
-- [Quickstart](https://undermountaincc.github.io/hermes-operator/) — install + first agent
-- [API reference](https://undermountaincc.github.io/hermes-operator/api-reference/) — every field documented
-- [Examples](https://undermountaincc.github.io/hermes-operator/examples/) — multi-gateway, fallback LLM providers, RBAC patterns
+- [Quickstart](https://undermountain.cc/labs/hermes-operator/) — install + first agent
+- [API reference](https://undermountain.cc/labs/hermes-operator/api-reference/) — every field documented
+- [Examples](https://undermountain.cc/labs/hermes-operator/examples/) — multi-gateway, fallback LLM providers, RBAC patterns
 
 ## E2E tests
 

@@ -5,7 +5,7 @@ hermes-operator installed successfully.
 Verify the operator is running:
   kubectl -n {{ $relns }} rollout status deployment {{ $relname }}-controller-manager --timeout=120s
 
-Create your first HermesAgent — see https://undermountaincc.github.io/hermes-operator/ for a quickstart.
+Create your first HermesAgent — see https://undermountain.cc/labs/hermes-operator/ for a quickstart.
 
 {{- if not .Values.operator.allowedClusterRoles }}
 

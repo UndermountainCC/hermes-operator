@@ -58,7 +58,7 @@ The operator does NOT:
 - Carry Hermes-application semantics in the CRD (no model selection, prompt tuning, routing — those are agent-runtime concerns).
 - Build or push Hermes container images (separate concern).
 
-User-facing design rationale lives in the [docs site](https://undermountaincc.github.io/hermes-operator/).
+User-facing design rationale lives in the [docs site](https://undermountain.cc/labs/hermes-operator/).
 
 ## Hard invariants
 
