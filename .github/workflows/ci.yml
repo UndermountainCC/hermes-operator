@@ -30,9 +30,13 @@ jobs:
           go-version-file: go.mod
           cache: true
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.1.0
+          # Must track the go.mod toolchain: the action downloads a prebuilt
+          # golangci-lint, and a binary built with an older Go exits 3 ("can't
+          # parse go.mod go directive") once go.mod declares a newer Go. Keep
+          # this in lockstep with Makefile's GOLANGCI_LINT_VERSION.
+          version: v2.12.2
           # Default is 5m; self-hosted runners hit it on cold cache. Bump
           # so the linter has room to finish a real run.
           args: --timeout=10m
