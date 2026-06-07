@@ -27,12 +27,16 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version-file: go.mod
           cache: true
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.1.0
+          # Must track the go.mod toolchain: the action downloads a prebuilt
+          # golangci-lint, and a binary built with an older Go exits 3 ("can't
+          # parse go.mod go directive") once go.mod declares a newer Go. Keep
+          # this in lockstep with Makefile's GOLANGCI_LINT_VERSION.
+          version: v2.12.2
           # Default is 5m; self-hosted runners hit it on cold cache. Bump
           # so the linter has room to finish a real run.
           args: --timeout=10m
@@ -44,7 +48,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version-file: go.mod
           cache: true
       - name: Regenerate manifests + deepcopy
         run: |
@@ -68,11 +72,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version-file: go.mod
           cache: true
       - name: Install envtest binaries
         run: |
-          go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+          # Pinned to the controller-runtime release branch in go.mod (v0.21.x)
+          # instead of @latest: @latest floats and now resolves to a setup-envtest
+          # that requires go >= 1.26, which broke CI under setup-go's GOTOOLCHAIN=local.
+          go install sigs.k8s.io/controller-runtime/tools/setup-envtest@release-0.21
           echo "KUBEBUILDER_ASSETS=$(setup-envtest use ${{ matrix.k8s }}.x -p path)" >> $GITHUB_ENV
       - name: Run tests
         run: make test
