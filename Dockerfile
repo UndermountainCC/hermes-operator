@@ -9,7 +9,7 @@
 # natively for the target arch instead of running the entire Go compiler
 # under QEMU emulation. Without this directive, arm64 builds took ~40 min
 # under QEMU; with it, ~20s.
-FROM --platform=$BUILDPLATFORM golang:1.24 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.26 AS builder
 ARG TARGETOS
 ARG TARGETARCH
 
