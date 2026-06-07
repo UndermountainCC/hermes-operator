@@ -261,7 +261,7 @@ type HermesAgentDashboardIngressTLS struct {
 	SecretName string `json:"secretName,omitempty"`
 }
 
-// +kubebuilder:validation:XValidation:rule="(has(self.existingClaimName) && size(self.existingClaimName) > 0) != (has(self.persistentVolumeClaim) && size(self.persistentVolumeClaim.accessModes) > 0)",message="set exactly one of storage.existingClaimName or storage.persistentVolumeClaim"
+// +kubebuilder:validation:XValidation:rule="(has(self.existingClaimName) && size(self.existingClaimName) > 0) != (has(self.persistentVolumeClaim) && has(self.persistentVolumeClaim.accessModes) && size(self.persistentVolumeClaim.accessModes) > 0)",message="set exactly one of storage.existingClaimName or storage.persistentVolumeClaim"
 // HermesAgentStorage configures the agent's PVC.
 type HermesAgentStorage struct {
 	// PersistentVolumeClaim is the spec of the PVC the operator creates
