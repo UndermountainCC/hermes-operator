@@ -2410,8 +2410,8 @@ spec:
                 x-kubernetes-validations:
                 - message: set exactly one of storage.existingClaimName or storage.persistentVolumeClaim
                   rule: (has(self.existingClaimName) && size(self.existingClaimName)
-                    > 0) != (has(self.persistentVolumeClaim) && size(self.persistentVolumeClaim.accessModes)
-                    > 0)
+                    > 0) != (has(self.persistentVolumeClaim) && has(self.persistentVolumeClaim.accessModes)
+                    && size(self.persistentVolumeClaim.accessModes) > 0)
               suspend:
                 description: |-
                   Suspend scales the agent to zero replicas without deleting the CR or

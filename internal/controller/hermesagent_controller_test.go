@@ -132,6 +132,79 @@ var _ = Describe("HermesAgent reconciliation", func() {
 	})
 })
 
+var _ = Describe("HermesAgent storage.existingClaimName (adopt a pre-existing PVC)", func() {
+	// Regression: the storage XValidation CEL rule dereferenced
+	// self.persistentVolumeClaim.accessModes without first checking the key
+	// exists. The controller-runtime client serializes the zero-value
+	// PersistentVolumeClaimSpec as a present-but-empty object (Go's json
+	// omitempty is a no-op on structs), so once the operator wrote the CR back
+	// to add its finalizer, CEL evaluated `size(self.persistentVolumeClaim.
+	// accessModes)` against an object with no accessModes key and errored with
+	// "no such key: accessModes". The Update was rejected, the finalizer never
+	// landed, and reconcile looped forever without ever creating the Deployment.
+	It("adds the finalizer and creates a Deployment mounting the adopted claim, generating no PVC", func() {
+		scn := "standard"
+		legacy := &corev1.PersistentVolumeClaim{
+			ObjectMeta: metav1.ObjectMeta{Name: "legacy-claim", Namespace: namespace},
+			Spec: corev1.PersistentVolumeClaimSpec{
+				AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
+				StorageClassName: &scn,
+				Resources: corev1.VolumeResourceRequirements{
+					Requests: corev1.ResourceList{corev1.ResourceStorage: resource.MustParse("1Gi")},
+				},
+			},
+		}
+		Expect(k8sClient.Create(ctx, legacy)).To(Succeed())
+
+		agent := &hermesv1alpha1.HermesAgent{
+			ObjectMeta: metav1.ObjectMeta{Name: "adopt", Namespace: namespace},
+			Spec: hermesv1alpha1.HermesAgentSpec{
+				Image: "ghcr.io/example/hermes@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+				Storage: hermesv1alpha1.HermesAgentStorage{
+					ExistingClaimName: "legacy-claim",
+				},
+				LLMDefaultProvider: "deepseek",
+				LLMProviders: []hermesv1alpha1.HermesAgentLLMProvider{
+					{Name: "deepseek", Env: []corev1.EnvVar{{Name: "DEEPSEEK_API_KEY", Value: "k"}}},
+				},
+			},
+		}
+		Expect(k8sClient.Create(ctx, agent)).To(Succeed())
+
+		// The exact write the CEL bug rejected: the operator's finalizer Update.
+		Eventually(func() []string {
+			var got hermesv1alpha1.HermesAgent
+			if err := k8sClient.Get(ctx, types.NamespacedName{Name: "adopt", Namespace: namespace}, &got); err != nil {
+				return nil
+			}
+			return got.Finalizers
+		}, timeout, interval).Should(ContainElement(finalizerName))
+
+		// A Deployment that mounts the adopted claim verbatim, not a generated one.
+		var dep appsv1.Deployment
+		Eventually(func() error {
+			return k8sClient.Get(ctx, types.NamespacedName{Name: "hermes-adopt", Namespace: namespace}, &dep)
+		}, timeout, interval).Should(Succeed())
+
+		var dataVol *corev1.Volume
+		for i := range dep.Spec.Template.Spec.Volumes {
+			if dep.Spec.Template.Spec.Volumes[i].Name == "data" {
+				dataVol = &dep.Spec.Template.Spec.Volumes[i]
+				break
+			}
+		}
+		Expect(dataVol).NotTo(BeNil(), "Deployment has no 'data' volume")
+		Expect(dataVol.PersistentVolumeClaim).NotTo(BeNil(), "'data' volume is not PVC-backed")
+		Expect(dataVol.PersistentVolumeClaim.ClaimName).To(Equal("legacy-claim"))
+
+		// The operator must not generate its own PVC when adopting.
+		Consistently(func() error {
+			var pvc corev1.PersistentVolumeClaim
+			return k8sClient.Get(ctx, types.NamespacedName{Name: "hermes-adopt-data", Namespace: namespace}, &pvc)
+		}, "2s", interval).ShouldNot(Succeed())
+	})
+})
+
 var _ = Describe("HermesAgent Deployment invariants", func() {
 	It("hardcodes replicas=1 and strategy=Recreate on the agent Deployment", func() {
 		storageClass := "standard"
