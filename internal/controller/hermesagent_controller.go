@@ -282,7 +282,11 @@ func (r *HermesAgentReconciler) applyObject(
 	}
 	desired.GetObjectKind().SetGroupVersionKind(gvk)
 
-	if err := r.Patch(ctx, desired, client.Apply,
+	// client.Apply (the SSA PatchType) is deprecated in controller-runtime
+	// v0.24 in favor of the typed Client.Apply(); it still functions
+	// identically. Migrating the SSA path is tracked separately to keep this
+	// dependency upgrade focused — see CLAUDE.md "SSA, never Get-then-Update".
+	if err := r.Patch(ctx, desired, client.Apply, //nolint:staticcheck // SSA PatchType still supported in cr v0.24; typed Client.Apply() migration tracked separately
 		client.ForceOwnership,
 		client.FieldOwner(fieldOwner),
 	); err != nil {

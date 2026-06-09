@@ -92,7 +92,7 @@ func (r *HermesAgentReconciler) applyBindingSSA(ctx context.Context, obj client.
 	}
 	obj.GetObjectKind().SetGroupVersionKind(gvk)
 
-	if err := r.Patch(ctx, obj, client.Apply,
+	if err := r.Patch(ctx, obj, client.Apply, //nolint:staticcheck // SSA PatchType still supported in cr v0.24; typed Client.Apply() migration tracked separately
 		client.ForceOwnership,
 		client.FieldOwner(fieldOwner),
 	); err != nil {

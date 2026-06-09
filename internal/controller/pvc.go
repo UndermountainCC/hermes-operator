@@ -91,7 +91,7 @@ func (r *HermesAgentReconciler) reconcilePVC(
 	}
 	desired.GetObjectKind().SetGroupVersionKind(gvk)
 
-	if err := r.Patch(ctx, desired, client.Apply,
+	if err := r.Patch(ctx, desired, client.Apply, //nolint:staticcheck // SSA PatchType still supported in cr v0.24; typed Client.Apply() migration tracked separately
 		client.ForceOwnership,
 		client.FieldOwner(fieldOwner),
 	); err != nil {
