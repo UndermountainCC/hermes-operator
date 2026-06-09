@@ -41,7 +41,7 @@ jobs:
           version: v0.24.0
 
       - name: Cache hermes-agent image
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: /tmp/hermes-agent-image.tar
           key: hermes-agent-image-v2026.4.30
